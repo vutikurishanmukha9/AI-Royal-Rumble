@@ -6,10 +6,11 @@ import { ModelCard } from "@/components/rumble/ModelCard";
 import { Footer } from "@/components/rumble/Footer";
 import { MODELS } from "@/data/models";
 
+const EASE = [0.16, 1, 0.3, 1] as const;
 const fade = {
   initial: { opacity: 0, y: 28 },
   animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.9, ease: [0.16, 1, 0.3, 1] },
+  transition: { duration: 0.9, ease: EASE },
 };
 
 export default function Index() {
@@ -47,7 +48,7 @@ export default function Index() {
 
             <motion.h1
               {...fade}
-              transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1], delay: 0.05 }}
+              transition={{ duration: 1.1, ease: EASE, delay: 0.05 }}
               className="font-display mt-8 text-[15vw] leading-[0.82] text-graphite md:text-[10rem]"
             >
               ROYAL<br/>
@@ -139,7 +140,7 @@ export default function Index() {
                 initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.8, delay: i * 0.1, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: 0.8, delay: i * 0.1, ease: EASE }}
                 className="flex flex-col border border-border bg-card p-8"
               >
                 <div className="flex items-center justify-between">
