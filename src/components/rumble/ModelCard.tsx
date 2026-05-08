@@ -14,7 +14,7 @@ export function ModelCard({ m, index }: { m: AIModel; index: number }) {
       initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.2 }}
-      transition={{ duration: 0.7, delay: index * 0.05, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.7, delay: index * 0.05, ease: [0.16, 1, 0.3, 1] as const }}
       className="group relative flex flex-col justify-between border border-border bg-card p-6 transition-colors hover:bg-ivory-deep"
     >
       <div className="flex items-start justify-between">
