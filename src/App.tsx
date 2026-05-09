@@ -8,6 +8,8 @@ import NotFound from "./pages/NotFound.tsx";
 import Jam from "./pages/Jam.tsx";
 import Debate from "./pages/Debate.tsx";
 import Leaderboard from "./pages/Leaderboard.tsx";
+import Vote from "./pages/Vote.tsx";
+import Results from "./pages/Results.tsx";
 
 const queryClient = new QueryClient();
 
@@ -21,6 +23,8 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/jam" element={<Jam />} />
           <Route path="/debate" element={<Debate />} />
+          <Route path="/vote" element={<Vote />} />
+          <Route path="/results" element={<Results />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
