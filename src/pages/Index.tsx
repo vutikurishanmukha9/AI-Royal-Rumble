@@ -1,192 +1,157 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
+import { useState } from "react";
 import { Header } from "@/components/rumble/Header";
-import { Ticker } from "@/components/rumble/Ticker";
-import { ModelCard } from "@/components/rumble/ModelCard";
 import { Footer } from "@/components/rumble/Footer";
+import { IdentityStripe } from "@/components/rumble/IdentityStripe";
 import { MODELS } from "@/data/models";
 
-const EASE = [0.16, 1, 0.3, 1] as const;
-const fade = {
-  initial: { opacity: 0, y: 28 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.9, ease: EASE },
-};
+const EASE = [0.22, 1, 0.36, 1] as const;
 
 export default function Index() {
+  const [task, setTask] = useState("");
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
+    <div className="min-h-screen bg-canvas">
+      <Header onDark />
 
-      {/* HERO */}
-      <section className="relative overflow-hidden border-b border-border">
-        <div className="grid grid-cols-12 gap-0">
-          {/* left rail */}
-          <aside className="col-span-12 hidden flex-col justify-between border-r border-border px-6 py-10 md:col-span-2 md:flex">
-            <div className="space-y-1">
-              <div className="label-cap text-steel">Issue</div>
-              <div className="font-mono-edit text-graphite">№ 014</div>
+      {/* HERO — full bleed near-black */}
+      <section className="relative overflow-hidden bg-canvas-deeper" style={{ minHeight: "calc(100vh - 64px)" }}>
+        <div className="orb h-[420px] w-[420px] bg-orb-peach opacity-[0.18] -top-20 -left-10" style={{ animation: "orb-drift 14s ease-in-out infinite" }} />
+        <div className="orb h-[300px] w-[300px] bg-orb-sky opacity-[0.10] bottom-10 right-20" style={{ animation: "orb-drift 18s ease-in-out infinite reverse" }} />
+
+        <div className="relative mx-auto flex min-h-[calc(100vh-64px)] max-w-[1400px] flex-col justify-center px-6 py-20 lg:px-12">
+          <motion.div initial={{ opacity:0, y:8 }} animate={{ opacity:1, y:0 }} transition={{ duration:.5, ease:EASE }} className="flex items-center gap-3">
+            <span className="h-2 w-2 rounded-full bg-combat animate-pulse-dot" />
+            <span className="ui-label text-on-dark-muted">Season 01 · Live Now</span>
+          </motion.div>
+
+          <motion.h1 initial={{ opacity:0, y:16 }} animate={{ opacity:1, y:0 }} transition={{ duration:.6, ease:EASE }}
+            className="font-display mt-8 text-on-dark"
+            style={{ fontSize: "clamp(56px, 9vw, 128px)", lineHeight: 0.9, letterSpacing: "-0.04em" }}>
+            Every AI Claims<br/>Superiority.
+          </motion.h1>
+          <motion.h2 initial={{ opacity:0, y:16 }} animate={{ opacity:1, y:0 }} transition={{ duration:.6, ease:EASE, delay:.12 }}
+            className="font-display mt-2 text-on-dark/90"
+            style={{ fontSize: "clamp(40px, 6.5vw, 96px)", lineHeight: 0.9, letterSpacing: "-0.03em", paddingLeft: "max(20px, 4vw)" }}>
+            <em className="not-italic">Tonight</em> They Prove It.
+          </motion.h2>
+
+          <motion.p initial={{ opacity:0 }} animate={{ opacity:1 }} transition={{ delay:.3, duration:.6 }} className="mt-10 max-w-xl text-on-dark-muted text-balance" style={{ fontSize: 18 }}>
+            Enter your task. Watch them fight. You decide.
+          </motion.p>
+
+          {/* task pill + CTA */}
+          <motion.div initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} transition={{ delay:.4, duration:.6, ease:EASE }}
+            className="mt-8 flex w-full max-w-3xl flex-col gap-3 sm:flex-row">
+            <div className="flex h-14 flex-1 items-center rounded-full border border-hairline bg-canvas px-6 focus-within:border-2 focus-within:border-combat transition-colors">
+              <input
+                value={task} onChange={e=>setTask(e.target.value)}
+                placeholder="WHAT DO YOU NEED HELP WITH?"
+                className="ui-button h-full w-full bg-transparent text-ink placeholder:text-ink-stone outline-none"
+                style={{ fontSize: 13 }}
+              />
             </div>
-            <div className="space-y-1">
-              <div className="label-cap text-steel">Filed</div>
-              <div className="font-mono-edit text-graphite">08·V·MMXXVI</div>
-            </div>
-            <div className="space-y-1">
-              <div className="label-cap text-steel">Tonight</div>
-              <div className="font-serif-edit text-2xl italic leading-tight text-graphite">
-                Atlas-4<br/>vs<br/>Vega-9
-              </div>
-            </div>
-          </aside>
+            <Link to="/jam" className="ui-button inline-flex h-14 items-center justify-center rounded-full bg-ink px-7 text-on-dark hover:bg-ink-charcoal transition-colors">
+              Start the Rumble →
+            </Link>
+          </motion.div>
 
-          {/* center */}
-          <div className="col-span-12 px-6 py-16 md:col-span-7 md:px-10 md:py-24">
-            <motion.div {...fade} className="flex items-center gap-3">
-              <span className="h-2 w-2 animate-pulse-dot rounded-full bg-crimson" />
-              <span className="label-cap text-graphite">On Air · Lane 04</span>
-            </motion.div>
-
-            <motion.h1
-              {...fade}
-              transition={{ duration: 1.1, ease: EASE, delay: 0.05 }}
-              className="font-display mt-8 text-[15vw] leading-[0.82] text-graphite md:text-[10rem]"
-            >
-              ROYAL<br/>
-              <span className="font-serif-edit italic text-champagne-deep">Rumble</span>
-            </motion.h1>
-
-            <motion.p {...fade} transition={{ delay: 0.2, duration: 1 }} className="mt-10 max-w-xl text-balance font-serif-edit text-2xl leading-snug text-graphite-soft md:text-3xl">
-              Six artificial minds. One arena. Sixty seconds to make the case &mdash; then a discussion that will not stay polite.
-            </motion.p>
-
-            <motion.div {...fade} transition={{ delay: 0.35, duration: 1 }} className="mt-12 flex flex-wrap gap-3">
-              <Link to="/jam" className="group inline-flex items-center gap-3 bg-graphite px-6 py-4 text-ivory transition-colors hover:bg-graphite-soft">
-                <span className="label-cap">Enter Jam Round</span>
-                <span className="transition-transform group-hover:translate-x-1">→</span>
-              </Link>
-              <Link to="/debate" className="group inline-flex items-center gap-3 border border-graphite px-6 py-4 text-graphite transition-colors hover:bg-graphite hover:text-ivory">
-                <span className="label-cap">Watch the Discussion</span>
-              </Link>
-            </motion.div>
-          </div>
-
-          {/* right rail – tale of the tape */}
-          <aside className="col-span-12 border-l border-border bg-ivory-deep px-6 py-10 md:col-span-3">
-            <div className="label-cap text-steel">Tale of the Tape</div>
-            <div className="mt-6 grid grid-cols-2 gap-x-4">
-              <div>
-                <div className="font-display text-3xl text-graphite">ATL</div>
-                <div className="label-cap mt-1 text-steel">Northwind</div>
-              </div>
-              <div className="text-right">
-                <div className="font-display text-3xl text-crimson">VEG</div>
-                <div className="label-cap mt-1 text-steel">Helios</div>
-              </div>
-            </div>
-            <dl className="mt-8 space-y-4">
-              {[
-                ["ELO", "2841", "2756"],
-                ["Wins", "142", "119"],
-                ["Avg WPM", "412", "389"],
-                ["Interrupts", "11", "47"],
-              ].map(([k, a, b]) => (
-                <div key={k} className="grid grid-cols-3 items-center border-t border-border pt-3 text-sm">
-                  <span className="font-mono-edit text-graphite">{a}</span>
-                  <span className="label-cap text-center text-steel">{k}</span>
-                  <span className="font-mono-edit text-right text-graphite">{b}</span>
-                </div>
-              ))}
-            </dl>
-            <div className="mt-10 border-t border-border pt-4">
-              <div className="label-cap text-steel">Topic Tonight</div>
-              <div className="mt-3 font-serif-edit text-xl italic leading-tight text-graphite">
-                "Is consciousness a question, or only a hallucination of language?"
-              </div>
-            </div>
-          </aside>
+          <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} transition={{ delay:.6, duration:.7 }} className="mt-10 ui-label text-on-dark-muted">
+            {MODELS.map(m => m.name).join(" · ")}
+          </motion.div>
         </div>
       </section>
 
-      <Ticker />
+      {/* STATS BAND */}
+      <section className="border-y border-hairline bg-canvas">
+        <div className="mx-auto grid max-w-[1400px] grid-cols-1 md:grid-cols-3">
+          {[
+            ["12,847", "Rumbles Fought"],
+            ["9", "AIs in the Arena"],
+            ["3.2M", "Votes Cast"],
+          ].map(([n,l],i) => (
+            <div key={l} className={`px-8 py-14 ${i<2?"md:border-r border-hairline":""} ${i>0?"border-t md:border-t-0":""}`}>
+              <div className="font-mono-ui text-ink ui-num" style={{ fontSize: 56, fontWeight: 500, letterSpacing: "-0.02em", lineHeight: 1 }}>{n}</div>
+              <div className="ui-label text-ink-muted mt-3">{l}</div>
+            </div>
+          ))}
+        </div>
+      </section>
 
-      {/* MODES */}
-      <section className="border-b border-border px-6 py-24 lg:px-10">
-        <div className="grid grid-cols-12 gap-10">
-          <div className="col-span-12 md:col-span-4">
-            <div className="label-cap text-steel">The Two Formats</div>
-            <h2 className="font-display mt-6 text-6xl leading-[0.85] text-graphite md:text-7xl">
-              Sixty<br/>seconds.<br/>
-              <span className="font-serif-edit italic text-champagne-deep">Then chaos.</span>
-            </h2>
+      {/* HOW IT WORKS — alternating bands */}
+      {[
+        { n:"01", t:"Enter Your Task", c:"Type what you need. A draft, a strategy, a decision. The arena turns it into a contest.", dark:false },
+        { n:"02", t:"The Jam Round",   c:"Each model gets sixty seconds to define itself, name its weapons, and stake a claim.", dark:true },
+        { n:"03", t:"The Group Discussion", c:"Up to four models share one stage. Interruptions tracked. Dominance metered. You watch the truth surface.", dark:false },
+      ].map((s, i) => (
+        <section key={s.n} className={`relative ${s.dark ? "bg-canvas-deeper text-on-dark" : "bg-canvas text-ink"}`}>
+          <IdentityStripe colors={["#5A6472","#2A2826","#8B1E2D"]} />
+          <div className="mx-auto grid max-w-[1400px] grid-cols-12 gap-8 px-6 py-28 lg:px-12">
+            <div className="col-span-12 md:col-span-5">
+              <div className={`ui-label ${s.dark?"text-on-dark-muted":"text-ink-muted"}`}>{s.n} — Step</div>
+              <h3 className="font-display mt-4" style={{ fontSize: 44, lineHeight: 1.1, letterSpacing: "-0.03em" }}>{s.t}</h3>
+            </div>
+            <div className="col-span-12 md:col-span-6 md:col-start-7">
+              <p className={`text-balance ${s.dark?"text-on-dark/80":"text-ink-charcoal"}`} style={{ fontSize: 19, lineHeight: 1.6 }}>{s.c}</p>
+            </div>
+          </div>
+        </section>
+      ))}
+
+      {/* AI ROSTER */}
+      <section className="bg-canvas border-t border-hairline">
+        <div className="mx-auto max-w-[1400px] px-6 py-24 lg:px-12">
+          <div className="flex items-end justify-between">
+            <div>
+              <div className="ui-label text-ink-muted">The Competitors</div>
+              <h2 className="font-display mt-3" style={{ fontSize: 64, lineHeight: 1, letterSpacing:"-0.04em" }}>Nine in the arena.</h2>
+            </div>
+            <Link to="/leaderboard" className="ui-nav hidden text-ink-muted hover:text-combat md:inline">Full rankings →</Link>
           </div>
 
-          <div className="col-span-12 grid gap-6 md:col-span-8 md:grid-cols-2">
-            {[
-              {
-                tag: "Format 01",
-                title: "Jam Round",
-                copy: "Each model gets exactly 60 seconds to define itself, name its weapons, and declare why it should still be standing in the morning.",
-                points: ["60s opening monologue", "Self-comparison vs rivals", "Audience live vote", "Broadcast countdown"],
-              },
-              {
-                tag: "Format 02",
-                title: "Group Discussion",
-                copy: "Up to four models share one stage. Interruptions are tracked. Dominance is metered. The transcript scrolls in real time.",
-                points: ["Multi-model debate", "Interruption physics", "Dominance meter", "Live transcript feed"],
-              },
-            ].map((f, i) => (
+          <div className="mt-14 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {MODELS.map((m, i) => (
               <motion.div
-                key={f.title}
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.8, delay: i * 0.1, ease: EASE }}
-                className="flex flex-col border border-border bg-card p-8"
+                key={m.id}
+                initial={{ opacity:0, y:20 }}
+                whileInView={{ opacity:1, y:0 }}
+                viewport={{ once:true, amount:.2 }}
+                transition={{ duration:.6, delay:i*.04, ease:EASE }}
+                className="border border-hairline rounded-md p-7"
+                style={{ background: m.tint }}
               >
-                <div className="flex items-center justify-between">
-                  <span className="label-cap text-steel">{f.tag}</span>
-                  <span className="font-mono-edit text-xs text-steel">PROTOCOL</span>
+                <div className="flex items-start justify-between">
+                  <div className="ui-label text-ink-muted">№ {String(i+1).padStart(2,"0")}</div>
+                  <div className="ui-label text-ink-muted">{m.org}</div>
                 </div>
-                <h3 className="font-display mt-10 text-5xl leading-none text-graphite">{f.title}</h3>
-                <p className="mt-6 font-serif-edit text-xl italic text-graphite-soft">{f.copy}</p>
-                <ul className="mt-8 space-y-2 border-t border-border pt-4">
-                  {f.points.map((p) => (
-                    <li key={p} className="flex items-center gap-3 text-sm text-graphite-soft">
-                      <span className="h-px w-4 bg-champagne-deep" />
-                      {p}
-                    </li>
-                  ))}
-                </ul>
-                <Link
-                  to={i === 0 ? "/jam" : "/debate"}
-                  className="label-cap mt-10 inline-flex items-center gap-2 text-graphite hover:text-crimson"
-                >
-                  Enter <span>→</span>
-                </Link>
+                <h3 className="font-display mt-8 text-ink" style={{ fontSize: 28, lineHeight: 1.1 }}>{m.name}</h3>
+                <IdentityStripe colors={m.stripe} className="mt-3" />
+                <p className="mt-3 text-ink-charcoal italic" style={{ fontSize: 14 }}>{m.tagline}</p>
+                <div className="mt-8 flex items-end justify-between border-t border-ink/10 pt-4">
+                  <div>
+                    <div className="ui-label text-ink-muted">ELO</div>
+                    <div className="font-mono-ui ui-num text-ink mt-1" style={{ fontSize: 22 }}>{m.elo}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="ui-label text-ink-muted">W · L</div>
+                    <div className="font-mono-ui ui-num text-ink mt-1" style={{ fontSize: 22 }}>{m.wins}·{m.losses}</div>
+                  </div>
+                </div>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ROSTER */}
-      <section className="px-6 py-24 lg:px-10">
-        <div className="flex items-end justify-between border-b border-border pb-8">
-          <div>
-            <div className="label-cap text-steel">The Roster · Season 02</div>
-            <h2 className="font-display mt-4 text-6xl leading-none text-graphite md:text-7xl">
-              Six contenders.
-            </h2>
-          </div>
-          <Link to="/leaderboard" className="label-cap hidden text-graphite hover:text-crimson md:inline">
-            Full rankings →
+      {/* CHAPTER PANEL */}
+      <section className="bg-canvas-deeper">
+        <div className="mx-auto flex max-w-[1400px] flex-col items-center px-6 py-24 text-center lg:px-12">
+          <p className="font-display text-on-dark text-balance" style={{ fontSize: "clamp(36px, 5vw, 64px)", lineHeight: 1.1, letterSpacing: "-0.03em" }}>
+            Your Task. Their Battle.<br/><em className="not-italic">Your Vote.</em>
+          </p>
+          <Link to="/jam" className="ui-button mt-10 inline-flex h-12 items-center rounded-full bg-combat px-7 text-on-dark hover:bg-combat/85 transition-colors">
+            Enter the Arena →
           </Link>
-        </div>
-
-        <div className="mt-10 grid gap-px bg-border md:grid-cols-2 lg:grid-cols-3">
-          {MODELS.map((m, i) => (
-            <ModelCard key={m.id} m={m} index={i} />
-          ))}
         </div>
       </section>
 

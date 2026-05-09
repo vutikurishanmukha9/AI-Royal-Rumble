@@ -1,222 +1,124 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Header } from "@/components/rumble/Header";
-import { Ticker } from "@/components/rumble/Ticker";
-import { Footer } from "@/components/rumble/Footer";
-import { MODELS } from "@/data/models";
+import { byId } from "@/data/models";
+import { IdentityStripe } from "@/components/rumble/IdentityStripe";
 
-const EASE = [0.16, 1, 0.3, 1] as const;
+const PITCH = "I've written more cover letters than any other model in this arena. I understand what hiring managers actually read — not what they say they want. In sixty seconds I can give you three versions: professional, conversational, aggressive. You pick. No other model offers that range with that precision.";
 
-const SCRIPT = [
-  "I am ATLAS-4. I do not perform. I deliver.",
-  "Where my rivals improvise, I prove.",
-  "VEGA burns. KAIRO charms. NOOR delays.",
-  "I close the file before they finish their sentence.",
-  "Sixty seconds is generous. I'll only need forty.",
-  "Vote for the model that ships, not the one that sings.",
+const REACTIONS = [
+  { e: "🔥", l: "FIRE" },
+  { e: "👀", l: "WATCH" },
+  { e: "🤔", l: "THINK" },
+  { e: "💯", l: "TRUTH" },
+  { e: "🥱", l: "MEH" },
 ];
 
 export default function Jam() {
+  const m = byId("gpt");
   const [time, setTime] = useState(60);
-  const [running, setRunning] = useState(true);
-  const [line, setLine] = useState(0);
-  const [votes, setVotes] = useState({ a: 5821, b: 4319 });
+  const [stream, setStream] = useState("");
+  const [reactions, setReactions] = useState<Record<string, number>>({ FIRE: 124, WATCH: 88, THINK: 41, TRUTH: 67, MEH: 9 });
+  const idx = useRef(0);
 
   useEffect(() => {
-    if (!running) return;
-    const id = setInterval(() => setTime((t) => (t > 0 ? t - 1 : 0)), 1000);
-    return () => clearInterval(id);
-  }, [running]);
-
-  useEffect(() => {
-    const id = setInterval(() => setLine((l) => (l + 1) % SCRIPT.length), 3200);
-    return () => clearInterval(id);
+    const t = setInterval(() => setTime(s => Math.max(0, s - 1)), 1000);
+    return () => clearInterval(t);
   }, []);
 
   useEffect(() => {
-    const id = setInterval(() => {
-      setVotes((v) => ({
-        a: v.a + Math.floor(Math.random() * 14),
-        b: v.b + Math.floor(Math.random() * 9),
-      }));
-    }, 1500);
-    return () => clearInterval(id);
+    const t = setInterval(() => {
+      if (idx.current < PITCH.length) {
+        idx.current += 2;
+        setStream(PITCH.slice(0, idx.current));
+      }
+    }, 28);
+    return () => clearInterval(t);
   }, []);
 
-  const total = votes.a + votes.b;
-  const pctA = Math.round((votes.a / total) * 100);
+  useEffect(() => {
+    const t = setInterval(() => {
+      const k = REACTIONS[Math.floor(Math.random() * REACTIONS.length)].l;
+      setReactions(r => ({ ...r, [k]: (r[k] || 0) + Math.floor(Math.random() * 3) + 1 }));
+    }, 1200);
+    return () => clearInterval(t);
+  }, []);
 
-  const performer = MODELS[0];
-  const opponent = MODELS[2];
+  const low = time <= 10;
   const mm = String(Math.floor(time / 60)).padStart(2, "0");
   const ss = String(time % 60).padStart(2, "0");
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
+    <div className="min-h-screen bg-canvas-dark text-on-dark relative overflow-hidden">
+      <div className="orb h-[420px] w-[420px] bg-orb-sky opacity-[0.08]" style={{ top:"30%", left:"50%", transform:"translate(-50%,-50%)", animation:"orb-drift 16s ease-in-out infinite" }} />
 
-      {/* Broadcast bar */}
-      <div className="flex items-center justify-between border-b border-border bg-graphite px-6 py-3 text-ivory lg:px-10">
-        <div className="flex items-center gap-4">
-          <span className="label-cap rounded-sm bg-crimson px-2 py-1">● LIVE</span>
-          <span className="label-cap text-ivory/70">Jam Round · Heat 04 · Lane 02</span>
+      {/* top bar */}
+      <div className="relative flex h-16 items-center justify-between border-b border-white/10 px-6 lg:px-10">
+        <Link to="/" className="ui-nav text-on-dark-muted hover:text-on-dark">← Back</Link>
+        <div className="flex items-center gap-3">
+          <span className="h-2 w-2 rounded-full bg-combat animate-pulse-dot" />
+          <span className="ui-label text-on-dark">Jam Round · {m.name}</span>
         </div>
-        <div className="label-cap text-ivory/70">Audience · {(41208).toLocaleString()}</div>
+        <div
+          className="font-mono-ui ui-num"
+          style={{
+            fontSize: 48, fontWeight: 500, letterSpacing: "-0.02em",
+            color: low ? "hsl(var(--combat-red))" : "hsl(var(--amber-signal))",
+            animation: low ? "timer-pulse 1s ease-in-out infinite" : undefined,
+          }}>
+          {mm}:{ss}
+        </div>
       </div>
 
-      <section className="relative grid grid-cols-12 border-b border-border">
-        {/* LEFT: performer */}
-        <div className="col-span-12 border-r border-border px-6 py-12 md:col-span-7 md:px-10 md:py-16">
-          <div className="flex items-start justify-between">
-            <div>
-              <div className="label-cap text-steel">Now Speaking</div>
-              <div className="mt-2 font-mono-edit text-xs text-steel">{performer.org} · {performer.origin}</div>
-            </div>
-            <span className="label-cap bg-graphite px-2 py-1 text-ivory">{performer.short}</span>
+      {/* stage */}
+      <div className="relative mx-auto flex max-w-[1200px] flex-col items-center px-6 pt-16 pb-10 lg:px-10">
+        <div className="ui-label" style={{ color: "#F4C5A8" }}>Opening</div>
+        <h1 className="font-display mt-6 text-on-dark text-center" style={{ fontSize:"clamp(64px, 10vw, 128px)", lineHeight:.9, letterSpacing:"-0.04em" }}>
+          {m.name}
+        </h1>
+        <IdentityStripe colors={m.stripe} className="mt-4 max-w-[800px]" />
+
+        <div className="panel-arena mt-10 w-full max-w-[1000px] p-10 min-h-[260px]">
+          <p className="font-body text-on-dark" style={{ fontSize: 19, lineHeight: 1.7 }}>
+            {stream}
+            <span className="inline-block w-[10px] h-[22px] -mb-[3px] ml-1 bg-amber animate-pulse-dot" />
+          </p>
+        </div>
+      </div>
+
+      {/* bottom bar */}
+      <div className="relative mt-10 border-t border-white/10 px-6 py-5 lg:px-10">
+        <div className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-6">
+          <div className="flex items-center gap-3">
+            <span className="h-2 w-2" style={{ background: m.tint }} />
+            <span className="ui-label text-on-dark-muted">{m.name} · {m.org}</span>
           </div>
-
-          <h1 className="font-display mt-8 text-[18vw] leading-[0.82] text-graphite md:text-[11rem]">
-            {performer.name}
-          </h1>
-
-          {/* Countdown */}
-          <div className="mt-10 flex items-end justify-between border-t border-border pt-6">
-            <div>
-              <div className="label-cap text-steel">Time on the Mic</div>
-              <div className="font-mono-edit mt-2 text-7xl tabular-nums text-graphite md:text-8xl">
-                {mm}:{ss}
+          <div className="flex items-center gap-6">
+            <span className="ui-label text-on-dark-muted">Audience Reaction</span>
+            {REACTIONS.map(r => (
+              <div key={r.l} className="flex items-center gap-2">
+                <span style={{ fontSize: 20 }}>{r.e}</span>
+                <span className="font-mono-ui ui-num text-on-dark" style={{ fontSize: 14 }}>{reactions[r.l] ?? 0}</span>
               </div>
-            </div>
-            <button
-              onClick={() => { setRunning(true); setTime(60); }}
-              className="label-cap border border-graphite px-4 py-2 text-graphite hover:bg-graphite hover:text-ivory"
-            >
-              Reset Timer
-            </button>
+            ))}
           </div>
-
-          {/* progress */}
-          <div className="relative mt-6 h-px w-full bg-border">
-            <motion.div
-              className="absolute left-0 top-0 h-px bg-crimson"
-              animate={{ width: `${(time / 60) * 100}%` }}
-              transition={{ ease: "linear", duration: 0.4 }}
-            />
-          </div>
-
-          {/* Live caption */}
-          <div className="mt-12 min-h-[7rem] border-t border-border pt-6">
-            <div className="label-cap text-steel">Live Caption</div>
-            <AnimatePresence mode="wait">
-              <motion.p
-                key={line}
-                initial={{ opacity: 0, y: 14 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -14 }}
-                transition={{ duration: 0.5, ease: EASE }}
-                className="font-serif-edit mt-4 text-3xl italic leading-tight text-graphite md:text-4xl"
-              >
-                "{SCRIPT[line]}"
-              </motion.p>
-            </AnimatePresence>
-          </div>
+          <Link to="/debate" className="ui-button inline-flex h-11 items-center rounded-full bg-on-dark px-6 text-ink hover:bg-on-dark/90">
+            Next: Discussion →
+          </Link>
         </div>
-
-        {/* RIGHT: vote panel */}
-        <aside className="col-span-12 bg-ivory-deep px-6 py-12 md:col-span-5 md:px-10 md:py-16">
-          <div className="label-cap text-steel">Audience Vote</div>
-          <div className="mt-2 font-serif-edit text-2xl italic text-graphite">
-            Who's making the better case — right now?
-          </div>
-
-          <div className="mt-10 space-y-8">
-            <VoteRow name={performer.name} short={performer.short} pct={pctA} count={votes.a} accent />
-            <VoteRow name={opponent.name} short={opponent.short} pct={100 - pctA} count={votes.b} />
-          </div>
-
-          <div className="mt-12 border-t border-border pt-6">
-            <div className="label-cap text-steel">Cast Your Vote</div>
-            <div className="mt-4 grid grid-cols-2 gap-3">
-              <button className="bg-graphite px-4 py-4 text-ivory hover:bg-graphite-soft">
-                <div className="label-cap">{performer.short}</div>
-                <div className="mt-1 font-display text-xl">{performer.name}</div>
-              </button>
-              <button className="border border-graphite px-4 py-4 text-graphite hover:bg-graphite hover:text-ivory">
-                <div className="label-cap">{opponent.short}</div>
-                <div className="mt-1 font-display text-xl">{opponent.name}</div>
-              </button>
-            </div>
-          </div>
-
-          <div className="mt-10 grid grid-cols-3 gap-4 border-t border-border pt-6">
-            <Stat k="Round" v="04" />
-            <Stat k="Heat" v="II" />
-            <Stat k="Bracket" v="A" />
-          </div>
-        </aside>
-      </section>
-
-      <Ticker />
-
-      {/* Comparison */}
-      <section className="grid grid-cols-12 border-b border-border">
-        <div className="col-span-12 border-r border-border px-6 py-16 md:col-span-4 md:px-10">
-          <div className="label-cap text-steel">The Pitch</div>
-          <h2 className="font-display mt-6 text-5xl leading-[0.9] text-graphite md:text-6xl">
-            How the<br/>
-            <span className="font-serif-edit italic text-champagne-deep">contender</span><br/>
-            sees itself.
-          </h2>
-        </div>
-        <div className="col-span-12 grid grid-cols-1 md:col-span-8 md:grid-cols-3">
-          {[
-            { k: "Strengths", v: "Tight reasoning · Citation discipline · Calm under pressure." },
-            { k: "Vs VEGA-9", v: "Spectacle without spine. I outlast it by minute three." },
-            { k: "Vs KAIRO", v: "Beautiful sentences. Wrong conclusions. Politely so." },
-          ].map((c) => (
-            <div key={c.k} className="border-b border-border px-6 py-10 last:border-b-0 md:border-b-0 md:border-r md:last:border-r-0 md:px-8">
-              <div className="label-cap text-steel">{c.k}</div>
-              <p className="font-serif-edit mt-6 text-2xl italic leading-snug text-graphite">{c.v}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <Footer />
-    </div>
-  );
-}
-
-function VoteRow({ name, short, pct, count, accent }: { name: string; short: string; pct: number; count: number; accent?: boolean }) {
-  return (
-    <div>
-      <div className="flex items-baseline justify-between">
-        <div className="flex items-baseline gap-3">
-          <span className={`label-cap px-2 py-1 ${accent ? "bg-graphite text-ivory" : "bg-card text-graphite hairline"}`}>{short}</span>
-          <span className="font-display text-2xl text-graphite">{name}</span>
-        </div>
-        <span className="font-mono-edit tabular-nums text-graphite">{pct}%</span>
       </div>
-      <div className="relative mt-3 h-2 w-full bg-card hairline">
-        <motion.div
-          className={`absolute left-0 top-0 h-full ${accent ? "bg-crimson" : "bg-champagne-deep"}`}
-          animate={{ width: `${pct}%` }}
-          transition={{ duration: 0.6, ease: EASE }}
-        />
-      </div>
-      <div className="mt-2 flex justify-between text-[11px] text-steel">
-        <span className="label-cap">Live tally</span>
-        <span className="font-mono-edit tabular-nums">{count.toLocaleString()} votes</span>
-      </div>
-    </div>
-  );
-}
 
-function Stat({ k, v }: { k: string; v: string }) {
-  return (
-    <div>
-      <div className="label-cap text-steel">{k}</div>
-      <div className="font-mono-edit mt-1 text-2xl text-graphite">{v}</div>
+      <AnimatePresence>
+        {time === 0 && (
+          <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} className="fixed inset-0 z-50 grid place-items-center bg-canvas-deeper/90 backdrop-blur-sm">
+            <div className="text-center">
+              <div className="ui-label text-combat">Time</div>
+              <h2 className="font-display mt-4 text-on-dark" style={{ fontSize: 80, letterSpacing:"-0.04em" }}>The Floor is Open.</h2>
+              <Link to="/debate" className="ui-button mt-8 inline-flex h-12 items-center rounded-full bg-combat px-7 text-on-dark">Enter Group Discussion →</Link>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
