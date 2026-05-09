@@ -51,7 +51,7 @@ export default function Index() {
                 style={{ fontSize: 13 }}
               />
             </div>
-            <Link to="/jam" className="ui-button inline-flex h-14 items-center justify-center rounded-full bg-ink px-7 text-on-dark hover:bg-ink-charcoal transition-colors">
+            <Link to="/jam" className="ui-button inline-flex h-14 items-center justify-center rounded-full bg-combat px-7 text-on-dark hover:bg-combat/85 transition-colors">
               Start the Rumble →
             </Link>
           </motion.div>
