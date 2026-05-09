@@ -32,6 +32,9 @@ class Settings(BaseSettings):
     max_tokens_per_ai_gd_turn: int = 250
     max_gd_rounds: int = 3
     voting_window_seconds: int = 300
+    stream_buffer_max_events: int = 1000
+    rumble_lock_ttl_seconds: int = 900
+    auto_create_tables: bool = False
 
     @property
     def cors_origin_list(self) -> list[str]:

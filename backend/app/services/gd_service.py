@@ -7,6 +7,7 @@ from app.ai.registry import get_provider
 from app.config import settings
 from app.models.ai_model import AIModel
 from app.models.rumble import Argument, Round, Rumble
+from app.services.event_bus import publish_event
 from app.utils.prompt_builder import build_counter_prompt
 from app.utils.token_counter import estimate_tokens
 
@@ -17,13 +18,15 @@ def select_gd_contenders(jam_results: list[dict]) -> list[dict]:
     return sorted(jam_results, key=lambda item: item["score"], reverse=True)[:4]
 
 
-async def run_gd_round(session: AsyncSession, rumble: Rumble, jam_results: list[dict], event_queue) -> list[dict]:
+async def run_gd_round(session: AsyncSession, rumble: Rumble, jam_results: list[dict]) -> list[dict]:
+    if len(jam_results) < 2:
+        return []
     rumble.status = "gd"
     round_obj = Round(rumble_id=rumble.id, round_type="gd", round_number=2, status="active")
     session.add(round_obj)
     await session.commit()
     await session.refresh(round_obj)
-    await event_queue.put({"type": "round_started", "data": {"round_type": "gd", "round_number": 2}})
+    await publish_event(str(rumble.id), "round_started", {"round_type": "gd", "round_number": 2})
     contenders = select_gd_contenders(jam_results)
     previous = jam_results.copy()
     gd_args: list[dict] = []
@@ -41,12 +44,16 @@ async def run_gd_round(session: AsyncSession, rumble: Rumble, jam_results: list[
                 previous,
             )
             provider = get_provider(attacker["ai_name"])
-            await event_queue.put({"type": "gd_counter_started", "data": {"ai_name": attacker["ai_name"], "argument_type": "counter", "target_ai": target["ai_name"]}})
+            await publish_event(str(rumble.id), "gd_counter_started", {"ai_name": attacker["ai_name"], "argument_type": "counter", "target_ai": target["ai_name"]})
             started = time.perf_counter()
             chunks: list[str] = []
-            async for chunk in provider.stream_response(system_prompt, user_prompt, settings.max_tokens_per_ai_gd_turn):
-                chunks.append(chunk)
-                await event_queue.put({"type": "ai_token", "data": {"ai_name": attacker["ai_name"], "token": chunk, "chunk": "".join(chunks)}})
+            try:
+                async for chunk in provider.stream_response(system_prompt, user_prompt, settings.max_tokens_per_ai_gd_turn):
+                    chunks.append(chunk)
+                    await publish_event(str(rumble.id), "ai_token", {"ai_name": attacker["ai_name"], "token": chunk, "chunk": "".join(chunks)})
+            except Exception as exc:
+                await publish_event(str(rumble.id), "error", {"code": "AI_UNAVAILABLE", "ai_name": attacker["ai_name"], "message": str(exc)[:200]})
+                continue
             content = "".join(chunks)
             latency_ms = int((time.perf_counter() - started) * 1000)
             arg = Argument(
@@ -66,8 +73,8 @@ async def run_gd_round(session: AsyncSession, rumble: Rumble, jam_results: list[
             previous.append(item)
             gd_args.append(item)
             phase += 1
-            await event_queue.put({"type": "ai_turn_completed", "data": {"ai_name": attacker["ai_name"], "full_content": content, "token_count": arg.token_count, "latency_ms": latency_ms}})
+            await publish_event(str(rumble.id), "ai_turn_completed", {"ai_name": attacker["ai_name"], "full_content": content, "token_count": arg.token_count, "latency_ms": latency_ms})
     round_obj.status = "completed"
     await session.commit()
-    await event_queue.put({"type": "round_completed", "data": {"round_type": "gd", "round_number": 2}})
+    await publish_event(str(rumble.id), "round_completed", {"round_type": "gd", "round_number": 2})
     return gd_args

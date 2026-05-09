@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -7,8 +9,7 @@ from app.ai.models_seed import AI_MODELS
 from app.config import settings
 from app.database import get_db
 from app.middleware.rate_limiter import check_rate_limit
-from app.models.ai_model import AIModel
-from app.models.rumble import Rumble, Vote
+from app.models.rumble import Round, Rumble
 from app.schemas.rumble import ResultsResponse, RumbleCreate, RumbleCreateResponse, RumbleStateResponse
 from app.services.result_service import build_results, get_vote_counts
 
@@ -39,9 +40,9 @@ async def create_rumble(payload: RumbleCreate, request: Request, session: AsyncS
 
 
 @router.get("/rumble/{rumble_id}", response_model=RumbleStateResponse)
-async def get_rumble(rumble_id: str, session: AsyncSession = Depends(get_db)):
+async def get_rumble(rumble_id: UUID, session: AsyncSession = Depends(get_db)):
     result = await session.execute(
-        select(Rumble).where(Rumble.id == rumble_id).options(selectinload(Rumble.rounds).selectinload("*"))
+        select(Rumble).where(Rumble.id == rumble_id).options(selectinload(Rumble.rounds).selectinload(Round.arguments))
     )
     rumble = result.scalar_one_or_none()
     if not rumble:
@@ -70,7 +71,7 @@ async def get_rumble(rumble_id: str, session: AsyncSession = Depends(get_db)):
 
 
 @router.get("/rumble/{rumble_id}/results", response_model=ResultsResponse)
-async def get_results(rumble_id: str, session: AsyncSession = Depends(get_db)):
+async def get_results(rumble_id: UUID, session: AsyncSession = Depends(get_db)):
     rumble = await session.get(Rumble, rumble_id)
     if not rumble:
         raise HTTPException(status_code=404, detail={"error": "RUMBLE_NOT_FOUND", "message": "Rumble not found", "detail": {}})

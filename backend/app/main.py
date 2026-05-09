@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.database import AsyncSessionLocal, init_db
+from app.errors import register_error_handlers
 from app.redis_client import close_redis
 from app.routers import health, models, rumble, stream, vote
 from app.services.model_seed import seed_ai_models
@@ -12,7 +13,8 @@ from app.services.model_seed import seed_ai_models
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await init_db()
+    if settings.auto_create_tables:
+        await init_db()
     async with AsyncSessionLocal() as session:
         await seed_ai_models(session)
     yield
@@ -20,6 +22,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="AI Royal Rumble API", version="0.1.0", lifespan=lifespan)
+register_error_handlers(app)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origin_list,

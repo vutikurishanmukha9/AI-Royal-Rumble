@@ -1,50 +1,57 @@
-import asyncio
 import json
+from uuid import UUID
 
-from fastapi import APIRouter, BackgroundTasks
+from fastapi import APIRouter, Header, Query, Request
 from fastapi.responses import StreamingResponse
 
-from app.services.rumble_orchestrator import run_rumble, running_rumbles
+from app.database import AsyncSessionLocal
+from app.models.rumble import Rumble
+from app.redis_client import get_redis
+from app.services.event_bus import parse_stream_event, publish_event, stream_key
+from app.services.rumble_orchestrator import start_rumble_task
 
 router = APIRouter()
-active_streams: dict[str, set[asyncio.Queue]] = {}
-
-
-async def publish_event(rumble_id: str, event: dict) -> None:
-    for queue in active_streams.get(str(rumble_id), set()).copy():
-        await queue.put(event)
 
 
 async def broadcast_vote_update(rumble_id: str, vote_counts: dict) -> None:
     await publish_event(
-        rumble_id,
-        {"type": "vote_update", "data": {"votes": vote_counts, "total": sum(vote_counts.values())}},
+        str(rumble_id),
+        "vote_update",
+        {"votes": vote_counts, "total": sum(vote_counts.values())},
     )
 
 
 @router.get("/rumble/{rumble_id}/stream")
-async def stream_rumble(rumble_id: str, background_tasks: BackgroundTasks):
-    queue: asyncio.Queue = asyncio.Queue()
-    active_streams.setdefault(rumble_id, set()).add(queue)
-    if rumble_id not in running_rumbles:
-        background_tasks.add_task(run_rumble, rumble_id, queue)
+async def stream_rumble(
+    rumble_id: UUID,
+    request: Request,
+    last_event_id: str | None = Header(default=None, alias="Last-Event-ID"),
+    cursor: str | None = Query(default=None, alias="last_event_id"),
+):
+    rumble_id_str = str(rumble_id)
 
     async def event_generator():
-        try:
-            while True:
-                try:
-                    event = await asyncio.wait_for(queue.get(), timeout=30.0)
-                except asyncio.TimeoutError:
-                    yield ": keepalive\n\n"
-                    continue
-                if event is None:
-                    break
-                yield f"event: {event['type']}\n"
-                yield f"data: {json.dumps(event['data'], default=str)}\n\n"
-        finally:
-            active_streams.get(rumble_id, set()).discard(queue)
-            if not active_streams.get(rumble_id):
-                active_streams.pop(rumble_id, None)
+        redis = await get_redis()
+        async with AsyncSessionLocal() as session:
+            rumble = await session.get(Rumble, rumble_id)
+        if not rumble:
+            await publish_event(rumble_id_str, "error", {"code": "RUMBLE_NOT_FOUND", "message": "Rumble not found"})
+        elif rumble.status == "created":
+            start_rumble_task(rumble_id_str)
+
+        last_id = cursor or last_event_id or "0-0"
+        while not await request.is_disconnected():
+            messages = await redis.xread({stream_key(rumble_id_str): last_id}, count=50, block=30000)
+            if not messages:
+                yield ": keepalive\n\n"
+                continue
+            for _, events in messages:
+                for event_id, fields in events:
+                    last_id = event_id
+                    event_type, data = parse_stream_event(fields)
+                    yield f"id: {event_id}\n"
+                    yield f"event: {event_type}\n"
+                    yield f"data: {json.dumps(data, default=str)}\n\n"
 
     return StreamingResponse(
         event_generator(),

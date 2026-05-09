@@ -1,3 +1,5 @@
+from datetime import UTC, datetime
+
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -14,10 +16,11 @@ async def get_vote_counts(session: AsyncSession, rumble_id) -> dict[str, int]:
 
 async def complete_rumble(session: AsyncSession, rumble: Rumble) -> Rumble:
     counts = await get_vote_counts(session, rumble.id)
-    winner = max(counts.items(), key=lambda item: item[1])[0] if counts else None
+    winner = sorted(counts.items(), key=lambda item: (-item[1], item[0]))[0][0] if counts else None
     rumble.winner_ai = winner
     rumble.total_votes = sum(counts.values())
     rumble.status = "completed"
+    rumble.completed_at = datetime.now(UTC)
     await session.commit()
     await session.refresh(rumble)
     return rumble

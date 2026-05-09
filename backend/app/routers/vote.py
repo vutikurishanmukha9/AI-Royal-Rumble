@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from fastapi import APIRouter, Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -10,7 +12,7 @@ router = APIRouter()
 
 
 @router.post("/rumble/{rumble_id}/vote", response_model=VoteResponse)
-async def vote(rumble_id: str, payload: VoteCreate, request: Request, session: AsyncSession = Depends(get_db)):
-    result = await cast_vote(session, rumble_id, payload.voted_ai, request)
-    await broadcast_vote_update(rumble_id, result["current_votes"])
+async def vote(rumble_id: UUID, payload: VoteCreate, request: Request, session: AsyncSession = Depends(get_db)):
+    result = await cast_vote(session, str(rumble_id), payload.voted_ai, request)
+    await broadcast_vote_update(str(rumble_id), result["current_votes"])
     return result
