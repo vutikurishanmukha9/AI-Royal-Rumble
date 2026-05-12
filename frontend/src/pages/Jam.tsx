@@ -15,7 +15,7 @@ const REACTIONS = [
 ];
 
 export default function Jam() {
-  const m = byId("gpt");
+  const m = byId("gpt4o");
   const [time, setTime] = useState(60);
   const [stream, setStream] = useState("");
   const [reactions, setReactions] = useState<Record<string, number>>({ FIRE: 124, WATCH: 88, THINK: 41, TRUTH: 67, MEH: 9 });

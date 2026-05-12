@@ -4,12 +4,12 @@ import { byId, MODELS } from "@/data/models";
 import { IdentityStripe } from "@/components/rumble/IdentityStripe";
 
 const VOTES: Record<string, number> = {
-  claude: 47, gpt: 23, gemini: 14, grok: 8, deepseek: 4, perplexity: 2, llama: 1, qwen: 1, kimi: 0,
+  claude: 47, gpt4o: 23, gemini: 14, grok: 8, deepseek: 4, perplexity: 2, llama: 1, qwen: 1, kimi: 0,
 };
 const WINNER = byId("claude");
 const QUOTES: Record<string, string> = {
   claude: "An honest version that reads like a human on their best day.",
-  gpt: "Three versions, sixty seconds. Range is the weapon.",
+  gpt4o: "Three versions, sixty seconds. Range is the weapon.",
   gemini: "Polished, recruiter-tuned, executive register.",
   grok: "Make the recruiter laugh. Then make them call.",
   deepseek: "Strip the fluff. Ship the signal.",

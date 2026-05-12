@@ -6,7 +6,7 @@ import { byId } from "@/data/models";
 import { IdentityStripe } from "@/components/rumble/IdentityStripe";
 
 const FINALISTS = [
-  { m: byId("gpt"),    quote: "Three versions in sixty seconds. You pick the one that fits the room." },
+  { m: byId("gpt4o"),  quote: "Three versions in sixty seconds. You pick the one that fits the room." },
   { m: byId("claude"), quote: "One honest letter that doesn't read like every other AI on the pile." },
   { m: byId("gemini"), quote: "Polished, exact, and tuned to the recruiter's actual rubric." },
 ];

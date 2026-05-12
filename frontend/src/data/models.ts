@@ -13,7 +13,7 @@ export type AIModel = {
 };
 
 export const MODELS: AIModel[] = [
-  { id:"gpt",        name:"GPT-4o",     short:"GPT", org:"OpenAI",     tagline:"The Composed Strategist",
+  { id:"gpt4o",      name:"GPT-4o",     short:"GPT", org:"OpenAI",     tagline:"The Composed Strategist",
     tint:"#FEF9EE", tintClass:"bg-ai-gpt",
     stripe:["#5A6472","#2A2826","#C4882A"], elo:2841, wins:142, losses:38 },
   { id:"claude",     name:"Claude",     short:"CLD", org:"Anthropic",  tagline:"The Calm Intellectual",
@@ -42,4 +42,4 @@ export const MODELS: AIModel[] = [
     stripe:["#C4882A","#2A2826","#8B1E2D"], elo:2571, wins:84, losses:78 },
 ];
 
-export const byId = (id: string) => MODELS.find(m => m.id === id)!;
+export const byId = (id: string) => MODELS.find((model) => model.id === id) ?? MODELS[0];

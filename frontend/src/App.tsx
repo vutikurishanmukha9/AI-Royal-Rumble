@@ -10,6 +10,8 @@ import Debate from "./pages/Debate.tsx";
 import Leaderboard from "./pages/Leaderboard.tsx";
 import Vote from "./pages/Vote.tsx";
 import Results from "./pages/Results.tsx";
+import RumbleLive from "./pages/RumbleLive.tsx";
+import RumbleResults from "./pages/RumbleResults.tsx";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +27,8 @@ const App = () => (
           <Route path="/debate" element={<Debate />} />
           <Route path="/vote" element={<Vote />} />
           <Route path="/results" element={<Results />} />
+          <Route path="/rumble/:rumbleId" element={<RumbleLive />} />
+          <Route path="/rumble/:rumbleId/results" element={<RumbleResults />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

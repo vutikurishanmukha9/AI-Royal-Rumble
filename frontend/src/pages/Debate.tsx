@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { byId, MODELS } from "@/data/models";
 import { IdentityStripe } from "@/components/rumble/IdentityStripe";
 
-const A = byId("gpt");
+const A = byId("gpt4o");
 const B = byId("claude");
 const ACTIVE = [A, B, byId("gemini"), byId("grok")];
 
@@ -45,7 +45,7 @@ export default function Debate() {
   const a = useStream(A_TEXT);
   const b = useStream(B_TEXT);
   const [chain, setChain] = useState(CHAIN_SEED.slice(0, 1));
-  const [scores, setScores] = useState<Record<string, number>>({ gpt: 34, claude: 28, gemini: 18, grok: 12 });
+  const [scores, setScores] = useState<Record<string, number>>({ gpt4o: 34, claude: 28, gemini: 18, grok: 12 });
 
   useEffect(() => {
     let i = 1;

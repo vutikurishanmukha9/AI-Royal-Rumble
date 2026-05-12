@@ -1,15 +1,38 @@
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
-import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { FormEvent, useState } from "react";
 import { Header } from "@/components/rumble/Header";
 import { Footer } from "@/components/rumble/Footer";
 import { IdentityStripe } from "@/components/rumble/IdentityStripe";
 import { MODELS } from "@/data/models";
+import { createRumble } from "@/lib/api";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
 export default function Index() {
   const [task, setTask] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [starting, setStarting] = useState(false);
+  const navigate = useNavigate();
+
+  async function startRumble(event: FormEvent) {
+    event.preventDefault();
+    if (task.trim().length < 3 || starting) return;
+    setStarting(true);
+    setError(null);
+    try {
+      const rumble = await createRumble({
+        task: task.trim(),
+        selected_ais: MODELS.map((model) => model.id),
+      });
+      navigate(`/rumble/${rumble.rumble_id}`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not start the rumble.");
+    } finally {
+      setStarting(false);
+    }
+  }
+
   return (
     <div className="min-h-screen bg-canvas">
       <Header onDark />
@@ -41,7 +64,7 @@ export default function Index() {
           </motion.p>
 
           {/* task pill + CTA */}
-          <motion.div initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} transition={{ delay:.4, duration:.6, ease:EASE }}
+          <motion.form onSubmit={startRumble} initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} transition={{ delay:.4, duration:.6, ease:EASE }}
             className="mt-8 flex w-full max-w-3xl flex-col gap-3 sm:flex-row">
             <div className="flex h-14 flex-1 items-center rounded-full border border-hairline bg-canvas px-6 focus-within:border-2 focus-within:border-combat transition-colors">
               <input
@@ -51,10 +74,11 @@ export default function Index() {
                 style={{ fontSize: 13 }}
               />
             </div>
-            <Link to="/jam" className="ui-button inline-flex h-14 items-center justify-center rounded-full bg-combat px-7 text-on-dark hover:bg-combat/85 transition-colors">
-              Start the Rumble →
-            </Link>
-          </motion.div>
+            <button type="submit" disabled={task.trim().length < 3 || starting} className="ui-button inline-flex h-14 items-center justify-center rounded-full bg-combat px-7 text-on-dark transition-colors hover:bg-combat/85 disabled:cursor-not-allowed disabled:opacity-50">
+              {starting ? "Starting" : "Start the Rumble"}
+            </button>
+          </motion.form>
+          {error && <p className="mt-4 max-w-xl text-sm text-combat">{error}</p>}
 
           <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} transition={{ delay:.6, duration:.7 }} className="mt-10 ui-label text-on-dark-muted">
             {MODELS.map(m => m.name).join(" · ")}

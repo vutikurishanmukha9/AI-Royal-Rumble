@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     moonshot_api_key: str | None = None
 
     app_env: str = "development"
-    cors_origins: str = "http://localhost:5173"
+    cors_origins: str = "http://localhost:8080,http://localhost:5173"
     secret_key: str = Field(default="change-me", min_length=8)
 
     rate_limit_rumbles_per_ip_per_hour: int = 5
