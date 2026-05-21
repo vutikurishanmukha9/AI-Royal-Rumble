@@ -1,0 +1,81 @@
+# ──────────────────────────────────────────────────────────────
+# Render Blueprint — paste / commit this file, then connect the
+# repo in the Render dashboard → "New Blueprint Instance".
+# Render reads this and auto-provisions:
+#   1. Web Service  (FastAPI backend)
+#   2. PostgreSQL   (managed, free-tier available)
+#   3. Redis        (managed, free-tier available)
+# ──────────────────────────────────────────────────────────────
+
+services:
+  # ─── Backend API ─────────────────────────────────────────────
+  - type: web
+    name: ai-royal-rumble-api
+    runtime: python
+    region: oregon                          # Change to your preferred region
+    plan: free                              # free | starter | standard | pro
+    rootDir: backend                        # Monorepo — only build from backend/
+    buildCommand: |
+      pip install -r requirements.txt &&
+      alembic upgrade head
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 2
+    healthCheckPath: /api/v1/health
+    envVars:
+      # ── Database (auto-wired from the managed Postgres below) ──
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ai-rumble-db
+          property: connectionString
+        # Render gives a "postgresql://" URL; asyncpg needs "postgresql+asyncpg://"
+        # We handle that with a small transform at app startup (see note below).
+
+      # ── Redis (auto-wired from the managed Redis below) ────────
+      - key: REDIS_URL
+        fromService:
+          name: ai-rumble-redis
+          type: redis
+          property: connectionString
+
+      # ── AI API Keys (set these manually in Render dashboard) ───
+      - key: OPENAI_API_KEY
+        sync: false                          # Render won't expose in logs
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: GOOGLE_API_KEY
+        sync: false
+      - key: XAI_API_KEY
+        sync: false
+      - key: DEEPSEEK_API_KEY
+        sync: false
+      - key: PERPLEXITY_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: ALIBABA_API_KEY
+        sync: false
+      - key: MOONSHOT_API_KEY
+        sync: false
+
+      # ── App Config ─────────────────────────────────────────────
+      - key: APP_ENV
+        value: production
+      - key: CORS_ORIGINS
+        value: https://your-frontend.vercel.app,https://your-frontend.netlify.app
+      - key: SECRET_KEY
+        generateValue: true                  # Render auto-generates a secure random value
+      - key: AUTO_CREATE_TABLES
+        value: "false"                       # We use alembic migrations instead
+
+databases:
+  # ─── Managed PostgreSQL ──────────────────────────────────────
+  - name: ai-rumble-db
+    plan: free                              # free | starter | standard | pro
+    databaseName: airoyalrumble
+    user: airumble
+
+  # ─── Managed Redis ──────────────────────────────────────────
+  # NOTE: Render native Redis is available on paid plans.
+  # For free tier, use a third-party Redis (e.g. Upstash) and
+  # set REDIS_URL manually instead of using fromService above.
+  - name: ai-rumble-redis
+    plan: free                              # free | starter | standard

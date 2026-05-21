@@ -1,0 +1,46 @@
+# ──────────────────────────────────────────────────────────────
+# Netlify Configuration
+#
+# How to deploy on Netlify:
+#   1. Connect this repo at https://app.netlify.com
+#   2. In "Build settings":
+#        Base directory:   frontend
+#        Build command:    npm run build
+#        Publish directory: frontend/dist
+#   3. Under "Site settings → Environment variables", set:
+#        VITE_API_BASE_URL = https://your-backend.onrender.com/api/v1
+#        (or your Railway backend URL)
+#   4. Deploy!
+#
+# This file auto-configures everything so you may only need
+# to set the base directory in the dashboard.
+# ──────────────────────────────────────────────────────────────
+
+[build]
+  base = "frontend"
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+  NPM_FLAGS = "--legacy-peer-deps"
+
+# ─── SPA Redirect ──────────────────────────────────────────
+# React Router needs all routes to fall back to index.html
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# ─── Security + Cache Headers ──────────────────────────────
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"

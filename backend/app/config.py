@@ -35,6 +35,22 @@ class Settings(BaseSettings):
     stream_buffer_max_events: int = 1000
     rumble_lock_ttl_seconds: int = 900
     auto_create_tables: bool = False
+    port: int = 8000
+
+    @property
+    def async_database_url(self) -> str:
+        """Auto-transform Render/Railway's postgresql:// into postgresql+asyncpg://.
+
+        Deployment platforms inject DATABASE_URL as 'postgresql://' or
+        'postgres://', but SQLAlchemy async requires 'postgresql+asyncpg://'.
+        This property handles that transparently.
+        """
+        url = self.database_url
+        if url.startswith("postgres://"):
+            url = url.replace("postgres://", "postgresql+asyncpg://", 1)
+        elif url.startswith("postgresql://") and "+asyncpg" not in url:
+            url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
+        return url
 
     @property
     def cors_origin_list(self) -> list[str]:
